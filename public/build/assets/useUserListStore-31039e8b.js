@@ -1,0 +1,1 @@
+import{ab as n,ae as o}from"./main-edf7a918.js";const h=n("UserListStore",{actions:{fetchUsers(s,r,t){return new Promise((e,i)=>{o.get(`/api/web/user/all-user/${r}/?page=${s}`,{params:t}).then(a=>e(a)).catch(a=>i(a))})},fetchUser(s){return new Promise((r,t)=>{o.get(`/apps/users/${s}`).then(e=>r(e)).catch(e=>t(e))})}}});export{h as useUserListStore};
