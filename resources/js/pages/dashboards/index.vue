@@ -56,16 +56,16 @@ const fetchDynamicValues = async () => {
     //alert(response);
 
     // Extract the dynamic values from the API response
-    const jobApplications = data.jobApplications;
-    const listedJobs = data.listedJobs;
-    const listedRoles = data.listedRoles;
-    const allUsers = data.allUsers;
+    const deactive = data.deactive;
+    const listedChild = data.listedChild;
+    const listedVac = data.listedVac;
+    const allUser = data.allUser;
 
     // Update the userListMeta array with the new values
-    userListMeta[0].stats = jobApplications.toString();
-    userListMeta[1].stats = listedJobs.toString();
-    userListMeta[2].stats = listedRoles.toString();
-    userListMeta[3].stats = allUsers.toString();
+    userListMeta[0].stats = allUser.toString();
+    userListMeta[1].stats = listedVac.toString();
+    userListMeta[2].stats = listedChild.toString();
+    userListMeta[3].stats = deactive.toString();
   } catch (error) {
     // Handle any errors that occur during the API request
     console.error('Error fetching dynamic values:', error);
@@ -341,7 +341,7 @@ const userListMeta = [
   {
     icon: 'bx-objects-vertical-bottom',
     color: 'primary',
-    title: 'Job Application',
+    title: 'Total Users',
     stats: 'Loading...',
 
 
@@ -349,7 +349,7 @@ const userListMeta = [
   {
     icon: 'bx-doughnut-chart',
     color: 'error',
-    title: 'Listed Jobs',
+    title: 'Total Vaccines',
     stats: 'Loading...',
 
 
@@ -357,7 +357,7 @@ const userListMeta = [
   {
     icon: 'bx-color',
     color: 'success',
-    title: 'Listed skills',
+    title: 'Total Children',
     stats: 'Loading...',
 
 
@@ -365,7 +365,7 @@ const userListMeta = [
   {
     icon: 'bx-user-circle',
     color: 'warning',
-    title: 'All App Users',
+    title: 'Deactivation',
     stats: 'Loading...',
 
   },

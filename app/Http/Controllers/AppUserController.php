@@ -20,6 +20,7 @@ use DB; // for raw database query
 use Carbon\Carbon; // for date formate
 use Ixudra\Curl\Facades\Curl;
 use App\Models\children;
+use App\Models\Vaccine;
 // use Maatwebsite\Excel\Facades\Excel;
 // use App\Imports\EmpBulkImport;
 
@@ -159,23 +160,17 @@ class AppUserController extends Controller
 
     ///Dashboard -Data
     public function dashboard(){
-        // jobApplications data count
-        $jobApplications = AppliedJobs::count();
-        // listed job data count
-        $listedJobs = Job::count();
-        // listed skill data count
-        $listedSkills = skills::count();
-        // all user data count
-        $allUser = User::where('is_phone_verified', '=', '1')->leftJoin('employees','employees.user_id','=','users.id')->count();
-        // $allUser = User::join('skills','skills.id','=','users.skills')->join('aadhar_verifications', 'aadhar_verifications.user_id', '=', 'users.id')->count();
-
+        $deactive = acc_deactivation::count();
+        $listedChild = children::count();
+        $listedVac = Vaccine::count();
+        $allUser = AppUser::count();
         return response()->json([
             'status' => true,
             'message' => 'Request Successful, Data is Attached within this packet.',
-            'jobApplications' => $jobApplications,
-            'listedJobs' => $listedJobs,
-            'listedRoles' =>$listedSkills,
-            'allUsers'=>$allUser
+            'deactive' => $deactive,
+            'listedChild' => $listedChild,
+            'listedVac' =>$listedVac,
+            'allUser'=>$allUser
 
         ], 200);
     }
