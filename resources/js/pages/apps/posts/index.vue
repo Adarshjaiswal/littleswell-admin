@@ -118,25 +118,99 @@ const handleFileUpload = (event) => {
 };
 
 // Function to update job details
+// Function to update job details
 const updateJob = () => {
+  // Create FormData object
   const formData = new FormData();
-  formData.append('type', jobToEdit.value.type);
-  formData.append('text', jobToEdit.value.text);
-
-  if (fileInput.value?.files[0]) {
+  
+  // Add job data to FormData
+  formData.append('type', jobToEdit.value.type || '');
+  formData.append('text', jobToEdit.value.text || '');
+  
+  // Handle file upload - only add file if a new one was selected
+  if (fileInput.value && fileInput.value.files && fileInput.value.files.length > 0) {
     formData.append('content', fileInput.value.files[0]);
   }
+  
+  // Send the request
+  axios.post(`/api/web/posts/update/${jobToEdit.value.id}`, formData, {
+    headers: { 
+      'Content-Type': 'multipart/form-data',
+      'X-HTTP-Method-Override': 'PUT'
+    }
+  })
+  .then(response => {
+    console.log('Success response:', response);
+    alert('Job updated successfully!');
+    editDialog.value = false;
+    fetchPosts(currentPage.value, rowPerPage.value); // Refresh list
+  })
+  .catch(error => {
+    console.error('Error updating job:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+    }
+    alert('Failed to update job. Please try again.');
+  });
+};
 
-  axios.put(`/api/web/posts/update/${jobToEdit.value.id}`, formData, {
+
+// Add these variables to your existing <script setup> section, near the other ref declarations
+const addDialog = ref(false);
+const newPost = ref({
+  type: 'image',
+  text: '',
+  previewUrl: null
+});
+const newFileInput = ref(null);
+
+// Add this function to handle file uploads for new posts
+const handleNewFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    newPost.value.previewUrl = URL.createObjectURL(file);
+  }
+};
+
+// Add this function to submit the new post
+const createPost = () => {
+  // Validate form fields
+  if (!newPost.value.type || !newPost.value.text || !newFileInput.value?.files[0]) {
+    alert('Please fill in all fields and upload a file');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('type', newPost.value.type);
+  formData.append('text', newPost.value.text);
+  formData.append('content', newFileInput.value.files[0]);
+
+  isLoading.value = true;
+  axios.post('/api/web/posts/add', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
   .then(response => {
-    alert('Posts updated successfully!');
-    editDialog.value = false; // Close modal
-    fetchPosts(currentPage.value, rowPerPage.value); // Refresh job list
+    alert('Post created successfully!');
+    addDialog.value = false;
+    // Reset form
+    newPost.value = {
+      type: 'image',
+      text: '',
+      previewUrl: null
+    };
+    // Refresh the post list
+    fetchPosts(currentPage.value, rowPerPage.value);
   })
   .catch(error => {
-    alert('Failed to update Post. Please try again.');
+    console.error('Error creating post:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+    }
+    alert('Failed to create post. Please try again.');
+  })
+  .finally(() => {
+    isLoading.value = false;
   });
 };
 
@@ -154,17 +228,72 @@ const updateJob = () => {
       <VSelect v-model="jobToEdit.type" :items="['image', 'video']" label="Post Type" class="mb-4" />
       <VTextarea v-model="jobToEdit.text" label="Description" class="mb-4" />
       <div v-if="jobToEdit.type === 'image'" class="mb-4">
-        <img :src="jobToEdit.content_path" alt="Preview" style="width: 100px; height: auto;" />
-        <VFileInput @change="handleFileUpload" label="Upload Image" accept="image/*" class="mt-2" />
-      </div>
-      <div v-else-if="jobToEdit.type === 'video'" class="mb-4">
-        <video :src="jobToEdit.content_path" controls style="width: 100px; height: auto;"></video>
-        <VFileInput @change="handleFileUpload" label="Upload Video" accept="video/*" class="mt-2" />
-      </div>
+  <img v-if="jobToEdit.content_path" :src="jobToEdit.content_path" alt="Preview" style="width: 100px; height: auto;" />
+  <VFileInput 
+    ref="fileInput"
+    @change="handleFileUpload" 
+    label="Upload Image" 
+    accept="image/*" 
+    class="mt-2" 
+  />
+</div>
+
+<!-- For video files -->
+<div v-else-if="jobToEdit.type === 'video'" class="mb-4">
+  <video v-if="jobToEdit.content_path" :src="jobToEdit.content_path" controls style="width: 100px; height: auto;"></video>
+  <VFileInput 
+    ref="fileInput"
+    @change="handleFileUpload" 
+    label="Upload Video" 
+    accept="video/*" 
+    class="mt-2" 
+  />
+</div>
     </VCardText>
     <VCardActions>
       <VBtn color="error" @click="editDialog = false">Cancel</VBtn>
       <VBtn color="primary" @click="updateJob">Update</VBtn>
+    </VCardActions>
+  </VCard>
+</VDialog>
+
+
+
+
+
+<!-- Add this inside your <template> section, before the closing </section> tag -->
+  <VDialog v-model="addDialog" max-width="500px">
+  <VCard>
+    <VCardTitle>Add New Post</VCardTitle>
+    <VCardText>
+      <VSelect v-model="newPost.type" :items="['image', 'video']" label="Post Type" class="mb-4" required />
+      <VTextarea v-model="newPost.text" label="Description" class="mb-4" required />
+      <div v-if="newPost.type === 'image'" class="mb-4">
+        <VFileInput 
+          ref="newFileInput"
+          @change="handleNewFileUpload" 
+          label="Upload Image" 
+          accept="image/*" 
+          class="mt-2"
+          required 
+        />
+        <img v-if="newPost.previewUrl" :src="newPost.previewUrl" alt="Preview" style="width: 100px; height: auto; margin-top: 10px;" />
+      </div>
+      <div v-else-if="newPost.type === 'video'" class="mb-4">
+        <VFileInput 
+          ref="newFileInput"
+          @change="handleNewFileUpload" 
+          label="Upload Video" 
+          accept="video/*" 
+          class="mt-2"
+          required 
+        />
+        <video v-if="newPost.previewUrl" :src="newPost.previewUrl" controls style="width: 100px; height: auto; margin-top: 10px;"></video>
+      </div>
+    </VCardText>
+    <VCardActions>
+      <VBtn color="error" @click="addDialog = false">Cancel</VBtn>
+      <VBtn color="primary" @click="createPost">Add Post</VBtn>
     </VCardActions>
   </VCard>
 </VDialog>
@@ -181,9 +310,10 @@ const updateJob = () => {
          
             
               <!-- 👉 Add user button -->
-              <!-- <VBtn @click="iscreateJobDrawerVisible = true">
-                Add Vaccine
-              </VBtn> -->
+             <!-- Replace the commented out button in your VCardText section with this -->
+<VBtn @click="addDialog = true" color="primary" prepend-icon="mdi-plus">
+  Add Post
+</VBtn>
             </div>
           </VCardText>
           <VDivider />

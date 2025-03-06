@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Posts;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class PostsController extends Controller
 {
@@ -71,37 +72,93 @@ class PostsController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validate the request
-        // $request->validate([
-        //     'type' => 'required|in:image,video',
-        //     'text' => 'required|string',
-        //     'content' => 'required|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:10240', // 10MB limit
-        // ]);
-
-        // // Find the job record
-        // $job = Posts::findOrFail($id);
-
-        // // Update fields
-        // $job->type = $request->type;
-        // $job->text = $request->description;
-
-        // // Handle file upload
-        // if ($request->hasFile('content')) {
-        //     // Delete old file if exists
-        //     if ($job->content_path) {
-        //         Storage::delete($job->content_path);
-        //     }
-
-        //     // Store new file
-        //     $filePath = $request->file('content')->store('uploads/posts', 'public');
-        //     $job->content_path = $filePath;
-        // }
-
-        // // Save the job
-        // $job->save();
-
-        return response()->json(['message' => 'Posts updated successfully!', 'post' => $request]);
+        Log::info('Update Request Data:', $request->all());
+        
+        // Find the job record
+        $job = Posts::findOrFail($id);
+        
+        // Validate the request - make content optional since we might not be updating it
+        $request->validate([
+            'type' => 'required|in:image,video',
+            'text' => 'required|string',
+            'content' => 'nullable|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:10240', // 10MB limit
+        ]);
+        
+        // Update basic fields
+        $job->type = $request->type;
+        $job->text = $request->text;
+        
+        // Handle file upload only if a new file is provided
+        if ($request->hasFile('content')) {
+            // Delete old file if exists
+            if ($job->content_path) {
+                // Extract the relative path from the full URL if needed
+                $relativePath = str_replace(url('/storage/'), '', $job->content_path);
+                if (Storage::disk('public')->exists($relativePath)) {
+                    Storage::disk('public')->delete($relativePath);
+                }
+            }
+            
+            // Store new file and get relative path
+            $relativePath = $request->file('content')->store('uploads/posts', 'public');
+            
+            // Create full URL path with domain
+            $fullPath = url('/storage/' . $relativePath);
+            
+            // Store the full URL path
+            $job->content_path = $fullPath;
+        }
+        
+        // Save the job
+        $job->save();
+        
+        return response()->json(['message' => 'Post updated successfully!', 'post' => $job]);
     }
 
+
+
+
+    /**
+ * Create a new post
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\Response
+ */
+public function create(Request $request)
+{
+    Log::info('Create Post Request Data:', $request->all());
+    
+    // Validate the request
+    $request->validate([
+        'type' => 'required|in:image,video',
+        'text' => 'required|string',
+        'content' => 'required|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:10240', // 10MB limit
+    ]);
+    
+    // Create new post
+    $post = new Posts();
+    $post->type = $request->type;
+    $post->text = $request->text;
+    
+    // Handle file upload
+    if ($request->hasFile('content')) {
+        // Store file
+        $relativePath = $request->file('content')->store('uploads/posts', 'public');
+        
+        // Create full URL path
+        $fullPath = asset('storage/' . $relativePath);
+        
+        // Store the full URL path
+        $post->content_path = $fullPath;
+    }
+    
+    // Save the post
+    $post->save();
+    
+    return response()->json([
+        'message' => 'Post created successfully!', 
+        'post' => $post
+    ], 201);
+}
 
 }

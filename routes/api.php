@@ -61,7 +61,7 @@ Route::group([
     Route::get('/all-posts/{rowperpage}', [PostsController::class, 'allPosts']);
     Route::delete('/posts/delete/{id}', [PostsController::class, 'destroy']);
     Route::put('/posts/update/{id}', [PostsController::class, 'update']);
-
+    Route::post('/posts/add', [PostsController::class, 'create']);
 
 
     // Jobs routes
