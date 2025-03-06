@@ -40,11 +40,11 @@ if (userRole === 'admin') {
 
       ],
     },
-    // {
-    //   title: 'Manage Concerns',
-    //   icon: { icon: 'bxs-coupon' },
-    //   to: 'apps-concern',
-    // },
+    {
+      title: 'Manage posts',
+      icon: { icon: 'bxs-coupon' },
+      to: 'apps-posts',
+    },
 
     //  {
     //   title: 'Manage Locations',

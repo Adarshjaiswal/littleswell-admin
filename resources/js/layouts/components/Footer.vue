@@ -11,7 +11,7 @@
         size="1.25rem"
         class="mx-1"
       />
-      By DNA x Devs
+      By Devscult
     </span>
     <!-- 👉 Footer: right content -->
  

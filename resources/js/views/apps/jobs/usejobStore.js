@@ -12,6 +12,14 @@ export const useJobs = defineStore('useJobs', {
       })
     },
 
+    fetchPosts(currentPage,rowPerPage, params) {
+      return new Promise((resolve, reject) => {
+        axios.get(`/api/web/all-posts/${rowPerPage}/?page=${currentPage}`, { params })
+          .then(response => resolve(response))
+          .catch(error => reject(error))
+      })
+    },
+
 
 
     

@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\JobsController;
 use App\Http\Controllers\locationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PostsController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\skillController;
 use Illuminate\Support\Facades\Route;
@@ -55,10 +56,11 @@ Route::group([
     Route::get('/all-vaccine/{rowperpage}', [VaccineController::class, 'allVaccine']);
     Route::delete('/vaccine/delete/{id}', [VaccineController::class, 'destroy']);
 
+/// Posts route
 
-
-
-
+    Route::get('/all-posts/{rowperpage}', [PostsController::class, 'allPosts']);
+    Route::delete('/posts/delete/{id}', [PostsController::class, 'destroy']);
+    Route::put('/posts/update/{id}', [PostsController::class, 'update']);
 
 
 
